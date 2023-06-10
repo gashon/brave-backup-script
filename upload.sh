@@ -4,7 +4,7 @@ set -e
 # Constants
 tar_file='brave-browser.tar.gz'
 split_prefix='brave-part-'
-dir_to_archive="/Users/gashon/Library/Application Support/BraveSoftware/Brave-Browser" # Note the quotes here
+dir_to_archive="/Users/<user>/Library/Application Support/BraveSoftware/Brave-Browser" # Note the quotes here
 split_size='50m'  # split the tar file into 50MB chunks to stay under GitHub's 100MB limit
 
 # Create new archive
