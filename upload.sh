@@ -1,11 +1,23 @@
 #!/bin/bash
-set -e
+
+export GIT_TRACE_PACKET=1
+export GIT_TRACE=1
+export GIT_CURL_VERBOSE=1
 
 # Constants
 tar_file='brave-browser.tar.gz'
 split_prefix='brave-part-'
-dir_to_archive="/Users/<user>/Library/Application Support/BraveSoftware/Brave-Browser" # Note the quotes here
-split_size='50m'  # split the tar file into 50MB chunks to stay under GitHub's 100MB limit
+dir_to_archive="/Users/$USER/Library/Application Support/BraveSoftware/Brave-Browser"
+split_size='50m'
+repo_url="https://github.com/gashon/brave-backup"
+temp_git_folder="tmp_git"
+
+# Shallow clone into a temp directory
+rm -rf $temp_git_folder  # remove old temp folder if it exists
+git clone --depth 1 $repo_url $temp_git_folder
+
+# Move to the shallow cloned directory
+cd $temp_git_folder
 
 # Create new archive
 tar cvzf $tar_file "$dir_to_archive"
@@ -18,14 +30,13 @@ fi
 split -b $split_size -d $tar_file $split_prefix
 rm -f $tar_file
 
-git add -A
-git commit -m "cron: $(date)"
-git push -f
-
-for old_file in ${split_prefix}*; do
-    if [ -f "$old_file" ]; then
-        echo ""removing $old_file""
-        rm -f $old_file
-    fi
+# Copy, add, commit, and push each split file
+for split_file in ${split_prefix}*; do
+    git add $(basename $split_file)
+    git commit -m "cron: adding $(basename $split_file) on $(date)"
+    git push origin main
 done
 
+# Cleanup
+cd ..
+rm -rf $temp_git_folder
